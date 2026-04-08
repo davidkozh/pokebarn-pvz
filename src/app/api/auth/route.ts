@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { verifyAdmin, createAdminToken, ADMIN_COOKIE_NAME } from '@/lib/auth'
 import crypto from 'crypto'
 
+export const dynamic = 'force-dynamic'
+
 function hashPassword(password: string): string {
   return crypto.createHash('sha256').update(password).digest('hex')
 }

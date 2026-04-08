@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { verifyAdmin } from '@/lib/auth'
 
+export const dynamic = 'force-dynamic'
+
 function formatPackage(pkg: any) {
   return {
     id: pkg.id,

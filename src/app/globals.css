@@ -1,0 +1,99 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #0f0f1a;
+  --foreground: #e0e0e0;
+}
+
+body {
+  background-color: #0f0f1a;
+  color: #e0e0e0;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+html {
+  background-color: #0f0f1a;
+}
+
+/* Utility classes */
+@layer components {
+  .card-dark {
+    @apply bg-pokemon-dark border border-pokemon-darker rounded-lg;
+  }
+
+  .sidebar-dark {
+    @apply bg-pokemon-darker border-r border-pokemon-darkest;
+  }
+
+  .btn-primary {
+    @apply bg-pokemon-yellow text-pokemon-dark font-semibold py-2 px-4 rounded-lg hover:bg-opacity-90 transition-all;
+  }
+
+  .btn-secondary {
+    @apply bg-pokemon-dark text-pokemon-yellow border border-pokemon-yellow py-2 px-4 rounded-lg hover:bg-pokemon-darker transition-all;
+  }
+
+  .btn-danger {
+    @apply bg-pokemon-red text-white font-semibold py-2 px-4 rounded-lg hover:bg-opacity-90 transition-all;
+  }
+
+  .btn-info {
+    @apply bg-pokemon-blue text-white font-semibold py-2 px-4 rounded-lg hover:bg-opacity-90 transition-all;
+  }
+
+  .badge-stored {
+    @apply bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium;
+  }
+
+  .badge-transit {
+    @apply bg-amber-500 text-white px-3 py-1 rounded-full text-sm font-medium;
+  }
+
+  .badge-issued {
+    @apply bg-gray-600 text-white px-3 py-1 rounded-full text-sm font-medium;
+  }
+
+  .modal-overlay {
+    @apply fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50;
+  }
+
+  .modal-content {
+    @apply bg-pokemon-dark rounded-lg shadow-2xl p-6 max-w-md w-full mx-4;
+  }
+
+  .input-dark {
+    @apply bg-pokemon-darker text-white border border-pokemon-blue rounded-lg px-4 py-2 focus:outline-none focus:border-pokemon-yellow focus:ring-1 focus:ring-pokemon-yellow;
+  }
+
+  .table-dark {
+    @apply w-full border-collapse;
+  }
+
+  .table-dark th {
+    @apply bg-pokemon-darker text-pokemon-yellow font-semibold text-left px-4 py-3 border-b border-pokemon-darker;
+  }
+
+  .table-dark td {
+    @apply px-4 py-3 border-b border-pokemon-darker text-gray-300;
+  }
+
+  .table-dark tbody tr {
+    @apply hover:bg-pokemon-darker transition-colors;
+  }
+}
+
+/* Loading spinner */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}

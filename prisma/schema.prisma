@@ -1,0 +1,63 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Store {
+  id       Int       @id @default(autoincrement())
+  name     String
+  cells    Cell[]
+  packages Package[]
+}
+
+model Client {
+  id               Int       @id @default(autoincrement())
+  name             String
+  phone            String    @unique
+  sentPackages     Package[] @relation("Sender")
+  receivedPackages Package[] @relation("Receiver")
+  pickedUpPackages Package[] @relation("PickedUpBy")
+}
+
+model Cell {
+  id       Int       @id @default(autoincrement())
+  number   Int
+  storeId  Int
+  store    Store     @relation(fields: [storeId], references: [id])
+  packages Package[]
+
+  @@unique([number, storeId])
+}
+
+model Package {
+  id           Int           @id @default(autoincrement())
+  status       String        @default("STORED")
+  description  String
+  receiverId   Int
+  receiver     Client        @relation("Receiver", fields: [receiverId], references: [id])
+  senderId     Int
+  sender       Client        @relation("Sender", fields: [senderId], references: [id])
+  cellId       Int?
+  cell         Cell?         @relation(fields: [cellId], references: [id])
+  storeId      Int
+  store        Store         @relation(fields: [storeId], references: [id])
+  pickedUpById Int?
+  pickedUpBy   Client?       @relation("PickedUpBy", fields: [pickedUpById], references: [id])
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  logs         PackageLog[]
+}
+
+model PackageLog {
+  id        Int      @id @default(autoincrement())
+  packageId Int
+  package   Package  @relation(fields: [packageId], references: [id])
+  action    String
+  note      String?
+  staffNote String?
+  createdAt DateTime @default(now())
+}

@@ -13,18 +13,17 @@ export async function GET(request: NextRequest) {
       },
     })
 
-    const storesData = stores.map((store) => ({
-      id: store.id,
-      name: store.name,
-      totalCells: store.cells.length,
-      occupiedCells: store.cells.filter((c) => c.packages.length > 0).length,
+    const occupiedCellsByStore = stores.map((store) => ({
+      storeName: store.name,
+      occupied: store.cells.filter((c) => c.packages.length > 0).length,
+      total: store.cells.length,
     }))
 
-    const inTransitCount = await prisma.package.count({
+    const packagesInTransit = await prisma.package.count({
       where: { status: 'IN_TRANSIT' },
     })
 
-    const recentLogs = await prisma.packageLog.findMany({
+    const logs = await prisma.packageLog.findMany({
       take: 5,
       orderBy: { createdAt: 'desc' },
       include: {
@@ -38,16 +37,12 @@ export async function GET(request: NextRequest) {
     })
 
     return NextResponse.json({
-      stores: storesData,
-      inTransit: inTransitCount,
-      recentLogs: recentLogs.map((log) => ({
-        id: log.id,
-        packageId: log.packageId,
+      occupiedCellsByStore,
+      packagesInTransit,
+      recentLogs: logs.map((log) => ({
+        timestamp: log.createdAt.toISOString(),
         action: log.action,
-        note: log.note,
-        staffNote: log.staffNote,
-        createdAt: log.createdAt,
-        package: log.package,
+        packageId: String(log.packageId),
       })),
     })
   } catch (error) {

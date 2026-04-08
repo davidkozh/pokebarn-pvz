@@ -10,11 +10,20 @@ export async function GET(request: NextRequest) {
         sender: true,
         cell: true,
         store: true,
-        logs: true,
       },
     })
 
-    return NextResponse.json(packages)
+    const result = packages.map((pkg) => ({
+      id: pkg.id,
+      cellNumber: pkg.cell?.number || null,
+      storeName: pkg.store.name,
+      senderName: pkg.sender.name,
+      receiverName: pkg.receiver.name,
+      description: pkg.description,
+      createdAt: pkg.createdAt.toISOString(),
+    }))
+
+    return NextResponse.json({ packages: result })
   } catch (error) {
     return NextResponse.json(
       { error: 'Internal server error' },

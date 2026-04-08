@@ -8,17 +8,27 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams
     const q = searchParams.get('q')?.toLowerCase() || ''
 
-    const clients = await prisma.client.findMany()
+    const clients = await prisma.client.findMany({
+      include: {
+        receivedPackages: { where: { status: 'STORED' } },
+      },
+    })
+
+    let result = clients.map((c) => ({
+      id: c.id,
+      name: c.name,
+      phone: c.phone,
+      activePackageCount: c.receivedPackages.length,
+    }))
 
     if (q) {
-      const filtered = clients.filter(
+      result = result.filter(
         (client) =>
           client.name.toLowerCase().includes(q) || client.phone.includes(q)
       )
-      return NextResponse.json(filtered)
     }
 
-    return NextResponse.json(clients)
+    return NextResponse.json({ clients: result })
   } catch (error) {
     return NextResponse.json(
       { error: 'Internal server error' },
@@ -52,7 +62,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check phone uniqueness
     const existing = await prisma.client.findUnique({
       where: { phone: normalizedPhone },
     })
@@ -70,7 +79,10 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    return NextResponse.json(client, { status: 201 })
+    return NextResponse.json(
+      { client: { id: client.id, name: client.name, phone: client.phone, activePackageCount: 0 } },
+      { status: 201 }
+    )
   } catch (error) {
     return NextResponse.json(
       { error: 'Internal server error' },

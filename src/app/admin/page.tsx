@@ -85,7 +85,7 @@ export default function AdminDashboard() {
                   <div
                     className="bg-pokemon-yellow h-full transition-all"
                     style={{
-                      width: `${(store.occupied / store.total) * 100}%`,
+                      width: store.total > 0 ? `${(store.occupied / store.total) * 100}%` : '0%',
                     }}
                   ></div>
                 </div>

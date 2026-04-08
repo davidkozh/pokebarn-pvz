@@ -17,33 +17,34 @@ export async function GET(request: NextRequest) {
     const cells = await prisma.cell.findMany({
       where,
       include: {
+        store: true,
         packages: {
-          include: { receiver: true, sender: true, store: true, logs: true },
+          where: { status: 'STORED' },
+          include: { receiver: true },
         },
       },
     })
 
-    // Filter by status based on STORED packages only
-    let filtered = cells.map((cell) => ({
-      ...cell,
-      storedPackages: cell.packages.filter((p) => p.status === 'STORED'),
-    }))
+    let filtered = cells
 
     if (status === 'free') {
-      filtered = filtered.filter((c) => c.storedPackages.length === 0)
+      filtered = filtered.filter((c) => c.packages.length === 0)
     } else if (status === 'occupied') {
-      filtered = filtered.filter((c) => c.storedPackages.length > 0)
+      filtered = filtered.filter((c) => c.packages.length > 0)
     }
 
     const result = filtered.map((cell) => ({
       id: cell.id,
+      cellNumber: cell.number,
       number: cell.number,
       storeId: cell.storeId,
-      packages: cell.packages,
-      isOccupied: cell.storedPackages.length > 0,
+      storeName: cell.store.name,
+      status: cell.packages.length > 0 ? 'OCCUPIED' : 'FREE',
+      clientName: cell.packages.length > 0 ? cell.packages[0].receiver.name : null,
+      packageCount: cell.packages.length,
     }))
 
-    return NextResponse.json(result)
+    return NextResponse.json({ cells: result })
   } catch (error) {
     return NextResponse.json(
       { error: 'Internal server error' },
@@ -69,7 +70,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Verify store exists
     const store = await prisma.store.findUnique({
       where: { id: parseInt(storeId) },
     })
@@ -81,14 +81,13 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Find max number in store
     const maxCell = await prisma.cell.findFirst({
       where: { storeId: parseInt(storeId) },
       orderBy: { number: 'desc' },
     })
 
     const startNumber = (maxCell?.number || 0) + 1
-    const cells = []
+    const newCells = []
 
     for (let i = 0; i < count; i++) {
       const cell = await prisma.cell.create({
@@ -97,10 +96,19 @@ export async function POST(request: NextRequest) {
           storeId: parseInt(storeId),
         },
       })
-      cells.push(cell)
+      newCells.push({
+        id: cell.id,
+        cellNumber: cell.number,
+        number: cell.number,
+        storeId: cell.storeId,
+        storeName: store.name,
+        status: 'FREE',
+        clientName: null,
+        packageCount: 0,
+      })
     }
 
-    return NextResponse.json(cells, { status: 201 })
+    return NextResponse.json({ cells: newCells }, { status: 201 })
   } catch (error) {
     return NextResponse.json(
       { error: 'Internal server error' },

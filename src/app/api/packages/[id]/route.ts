@@ -2,6 +2,28 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { verifyAdmin } from '@/lib/auth'
 
+function formatPackage(pkg: any) {
+  return {
+    id: pkg.id,
+    status: pkg.status,
+    description: pkg.description,
+    cellNumber: pkg.cell?.number || null,
+    storeName: pkg.store.name,
+    senderName: pkg.sender.name,
+    receiverName: pkg.receiver.name,
+    receiverPhone: pkg.receiver.phone,
+    createdAt: pkg.createdAt.toISOString(),
+    pickedUpAt: pkg.status === 'ISSUED' ? pkg.updatedAt.toISOString() : null,
+    pickedUpBy: pkg.pickedUpBy?.name || null,
+    eventLog: (pkg.logs || []).map((log: any) => ({
+      action: log.action,
+      note: log.note,
+      staffNote: log.staffNote,
+      timestamp: log.createdAt.toISOString(),
+    })),
+  }
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -25,7 +47,7 @@ export async function GET(
         pickedUpBy: true,
         cell: true,
         store: true,
-        logs: true,
+        logs: { orderBy: { createdAt: 'desc' } },
       },
     })
 
@@ -36,7 +58,7 @@ export async function GET(
       )
     }
 
-    return NextResponse.json(pkg)
+    return NextResponse.json({ package: formatPackage(pkg) })
   } catch (error) {
     return NextResponse.json(
       { error: 'Internal server error' },
@@ -133,21 +155,19 @@ export async function PUT(
 
     updateData.updatedAt = new Date()
 
-    const pkg = await prisma.package.update({
+    await prisma.package.update({
       where: { id: packageId },
       data: updateData,
     })
 
-    // Create log entry
     await prisma.packageLog.create({
       data: {
-        packageId: pkg.id,
+        packageId,
         action: logAction,
         note: logNote,
       },
     })
 
-    // Return updated package with relations
     const updatedPkg = await prisma.package.findUnique({
       where: { id: packageId },
       include: {
@@ -156,11 +176,11 @@ export async function PUT(
         pickedUpBy: true,
         cell: true,
         store: true,
-        logs: true,
+        logs: { orderBy: { createdAt: 'desc' } },
       },
     })
 
-    return NextResponse.json(updatedPkg)
+    return NextResponse.json({ package: formatPackage(updatedPkg) })
   } catch (error: any) {
     if (error.code === 'P2025') {
       return NextResponse.json(

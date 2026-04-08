@@ -47,7 +47,10 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     const authenticated = await verifyAdmin(request)
-    return NextResponse.json({ authenticated })
+    if (!authenticated) {
+      return NextResponse.json({ authenticated: false }, { status: 401 })
+    }
+    return NextResponse.json({ authenticated: true })
   } catch (error) {
     return NextResponse.json(
       { error: 'Internal server error' },

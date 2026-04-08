@@ -54,10 +54,12 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(
       {
-        id: store.id,
-        name: store.name,
-        totalCells: store.cells.length,
-        occupiedCells: 0,
+        store: {
+          id: store.id,
+          name: store.name,
+          totalCells: store.cells.length,
+          occupiedCells: 0,
+        },
       },
       { status: 201 }
     )

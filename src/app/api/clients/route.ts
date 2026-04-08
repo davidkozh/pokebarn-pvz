@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
       },
     })
 
-    let result = clients.map((c) => ({
+    let result = clients.map((c: any) => ({
       id: c.id,
       name: c.name,
       phone: c.phone,
@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
 
     if (q) {
       result = result.filter(
-        (client) =>
+        (client: any) =>
           client.name.toLowerCase().includes(q) || client.phone.includes(q)
       )
     }

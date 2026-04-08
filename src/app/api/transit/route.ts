@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
       },
     })
 
-    const result = packages.map((pkg) => ({
+    const result = packages.map((pkg: any) => ({
       id: pkg.id,
       cellNumber: pkg.cell?.number || null,
       storeName: pkg.store.name,

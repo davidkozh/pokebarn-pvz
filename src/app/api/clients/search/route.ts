@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     })
 
     const filtered = clients.filter(
-      (client) =>
+      (client: any) =>
         client.name.toLowerCase().includes(q) || client.phone.includes(q)
     )
 

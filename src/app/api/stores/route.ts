@@ -14,11 +14,11 @@ export async function GET(request: NextRequest) {
       },
     })
 
-    const result = stores.map((store) => ({
+    const result = stores.map((store: any) => ({
       id: store.id,
       name: store.name,
       totalCells: store.cells.length,
-      occupiedCells: store.cells.filter((c) => c.packages.length > 0).length,
+      occupiedCells: store.cells.filter((c: any) => c.packages.length > 0).length,
     }))
 
     return NextResponse.json({ stores: result })

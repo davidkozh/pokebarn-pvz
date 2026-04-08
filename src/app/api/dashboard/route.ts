@@ -13,9 +13,9 @@ export async function GET(request: NextRequest) {
       },
     })
 
-    const occupiedCellsByStore = stores.map((store) => ({
+    const occupiedCellsByStore = stores.map((store: any) => ({
       storeName: store.name,
-      occupied: store.cells.filter((c) => c.packages.length > 0).length,
+      occupied: store.cells.filter((c: any) => c.packages.length > 0).length,
       total: store.cells.length,
     }))
 
@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       occupiedCellsByStore,
       packagesInTransit,
-      recentLogs: logs.map((log) => ({
+      recentLogs: logs.map((log: any) => ({
         timestamp: log.createdAt.toISOString(),
         action: log.action,
         packageId: String(log.packageId),

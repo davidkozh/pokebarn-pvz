@@ -28,12 +28,12 @@ export async function GET(request: NextRequest) {
     let filtered = cells
 
     if (status === 'free') {
-      filtered = filtered.filter((c) => c.packages.length === 0)
+      filtered = filtered.filter((c: any) => c.packages.length === 0)
     } else if (status === 'occupied') {
-      filtered = filtered.filter((c) => c.packages.length > 0)
+      filtered = filtered.filter((c: any) => c.packages.length > 0)
     }
 
-    const result = filtered.map((cell) => ({
+    const result = filtered.map((cell: any) => ({
       id: cell.id,
       cellNumber: cell.number,
       number: cell.number,

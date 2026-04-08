@@ -43,9 +43,8 @@ export default function TransitPage() {
   useEffect(() => {
     const fetchPackages = async () => {
       try {
-        const response = await fetch(
-          "/api/packages?status=IN_TRANSIT"
-        );
+        // BUG-005 fix: use /api/transit which returns { packages: [...] }
+        const response = await fetch("/api/transit");
         if (response.ok) {
           const data = await response.json();
           setPackages(data.packages || []);

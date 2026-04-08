@@ -5,6 +5,28 @@ import { verifyAdmin } from '@/lib/auth'
 
 export const dynamic = 'force-dynamic'
 
+function formatPackageItem(pkg: any) {
+  return {
+    id: pkg.id,
+    status: pkg.status,
+    description: pkg.description,
+    cellNumber: pkg.cell?.number || null,
+    storeName: pkg.store?.name || '',
+    senderName: pkg.sender?.name || '',
+    receiverName: pkg.receiver?.name || '',
+    receiverPhone: pkg.receiver?.phone || '',
+    createdAt: pkg.createdAt instanceof Date ? pkg.createdAt.toISOString() : pkg.createdAt,
+    pickedUpAt: pkg.status === 'ISSUED' ? (pkg.updatedAt instanceof Date ? pkg.updatedAt.toISOString() : pkg.updatedAt) : null,
+    pickedUpBy: pkg.pickedUpBy?.name || null,
+    eventLog: (pkg.logs || []).map((log: any) => ({
+      action: log.action,
+      note: log.note || null,
+      staffNote: log.staffNote || null,
+      timestamp: log.createdAt instanceof Date ? log.createdAt.toISOString() : log.createdAt,
+    })),
+  }
+}
+
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
@@ -34,13 +56,15 @@ export async function GET(request: NextRequest) {
       include: {
         receiver: true,
         sender: true,
+        pickedUpBy: true,
         cell: true,
         store: true,
-        logs: true,
+        logs: { orderBy: { createdAt: 'asc' } },
       },
+      orderBy: { createdAt: 'desc' },
     })
 
-    return NextResponse.json(packages)
+    return NextResponse.json(packages.map(formatPackageItem))
   } catch (error) {
     return NextResponse.json(
       { error: 'Internal server error' },

@@ -27,8 +27,9 @@ export default function Home() {
   };
 
   const validatePhone = (phoneValue: string): boolean => {
+    // Stripped value includes the leading "7" from "+7 (...)", so expect 11 digits total
     const cleaned = phoneValue.replace(/\D/g, "");
-    if (cleaned.length !== 10) {
+    if (cleaned.length !== 11) {
       setError("Введите корректный номер телефона (10 цифр)");
       return false;
     }
@@ -39,9 +40,9 @@ export default function Home() {
     e.preventDefault();
     if (!validatePhone(phone)) return;
 
+    // cleaned already contains the leading "7" from "+7 (...)" — pass as-is to normalizePhone
     const cleaned = phone.replace(/\D/g, "");
-    const normalizedPhone = `7${cleaned}`;
-    router.push(`/my/${normalizedPhone}`);
+    router.push(`/my/${cleaned}`);
   };
 
   return (

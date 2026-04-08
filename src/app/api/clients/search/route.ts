@@ -12,16 +12,18 @@ export async function GET(request: NextRequest) {
       return NextResponse.json([])
     }
 
+    // BUG-009 fix: filter in DB so it scales properly with large client bases
     const clients = await prisma.client.findMany({
+      where: {
+        OR: [
+          { name: { contains: q, mode: 'insensitive' } },
+          { phone: { contains: q } },
+        ],
+      },
       take: 10,
     })
 
-    const filtered = clients.filter(
-      (client: any) =>
-        client.name.toLowerCase().includes(q) || client.phone.includes(q)
-    )
-
-    return NextResponse.json(filtered.slice(0, 10))
+    return NextResponse.json(clients)
   } catch (error) {
     return NextResponse.json(
       { error: 'Internal server error' },

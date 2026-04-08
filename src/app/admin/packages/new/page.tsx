@@ -176,7 +176,7 @@ export default function NewPackagePage() {
     e.preventDefault();
     setError("");
 
-    if (!storeId || !selectedSender || !selectedReceiver || !cellNumber) {
+    if (!storeId || !selectedSender || !selectedReceiver || !description || !cellNumber) {
       setError("Заполните все обязательные поля");
       return;
     }

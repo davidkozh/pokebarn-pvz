@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 interface Cell {
   id: string;
+  storeId: number;
   cellNumber: string;
   storeName: string;
   status: "FREE" | "OCCUPIED";
@@ -91,7 +92,8 @@ export default function CellsPage() {
   };
 
   const filteredCells = cells.filter((cell) => {
-    if (filterStore && cell.id !== filterStore) return false;
+    // BUG-008 fix: compare cell.storeId (not cell.id) with the selected store string
+    if (filterStore && String(cell.storeId) !== filterStore) return false;
     if (filterStatus && cell.status !== filterStatus) return false;
     return true;
   });

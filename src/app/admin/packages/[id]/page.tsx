@@ -6,6 +6,8 @@ import Link from "next/link";
 
 interface PackageDetail {
   id: string;
+  storeId: number;
+  receiverId: number;
   cellNumber: string;
   storeName: string;
   senderName: string;
@@ -41,8 +43,22 @@ const formatDate = (dateString: string) => {
 
 const formatPhone = (phone: string) => {
   const cleaned = phone.replace(/\D/g, "");
-  if (cleaned.length !== 11) return phone;
-  return `+${cleaned.slice(0, 1)} (${cleaned.slice(1, 4)}) ${cleaned.slice(4, 7)}-${cleaned.slice(7, 9)}-${cleaned.slice(9, 11)}`;
+  if (cleaned.length === 11) {
+    return `+${cleaned.slice(0, 1)} (${cleaned.slice(1, 4)}) ${cleaned.slice(4, 7)}-${cleaned.slice(7, 9)}-${cleaned.slice(9, 11)}`;
+  }
+  if (cleaned.length === 10) {
+    return `+7 (${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6, 8)}-${cleaned.slice(8, 10)}`;
+  }
+  return phone;
+};
+
+// BUG-011: Перевод кодов событий на русский
+const ACTION_LABELS: Record<string, string> = {
+  RECEIVED: "Принята на хранение",
+  TRANSIT_STARTED: "Отправлена в транзит",
+  TRANSIT_COMPLETED: "Получена из транзита",
+  ISSUED: "Выдана клиенту",
+  CELL_CHANGED: "Ячейка изменена",
 };
 
 export default function PackageDetailPage() {
@@ -54,7 +70,7 @@ export default function PackageDetailPage() {
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalType, setModalType] = useState<
-    "issue" | "transit" | "cell" | null
+    "issue" | "transit" | "receive_transit" | "cell" | null
   >(null);
   const [stores, setStores] = useState<Store[]>([]);
   const [cells, setCells] = useState<Cell[]>([]);
@@ -97,7 +113,7 @@ export default function PackageDetailPage() {
   }, []);
 
   const handleOpenModal = async (
-    type: "issue" | "transit" | "cell"
+    type: "issue" | "transit" | "receive_transit" | "cell"
   ) => {
     setModalType(type);
     setSelectedValue("");
@@ -113,9 +129,10 @@ export default function PackageDetailPage() {
       } catch (err) {
         setError("Ошибка при загрузке магазинов");
       }
-    } else if (type === "cell" && pkg) {
+    } else if ((type === "cell" || type === "receive_transit") && pkg) {
       try {
-        const response = await fetch(`/api/cells?storeId=${pkg.id}&status=free`);
+        // BUG-007 fix: use pkg.storeId (not pkg.id)
+        const response = await fetch(`/api/cells?storeId=${pkg.storeId}&status=free`);
         if (response.ok) {
           const data = await response.json();
           setCells(data.cells || []);
@@ -142,10 +159,15 @@ export default function PackageDetailPage() {
 
       if (modalType === "issue") {
         body.action = "ISSUE";
-        body.pickedUpBy = selectedValue || pkg?.receiverName;
+        // pickedUpById is set when someone other than receiver picks up;
+        // selectedValue holds the receiverId passed via the modal
+        body.pickedUpById = selectedValue || pkg?.receiverId;
       } else if (modalType === "transit") {
-        body.action = "SEND_TRANSIT";
+        body.action = "TRANSIT";
         body.targetStoreId = selectedValue;
+      } else if (modalType === "receive_transit") {
+        body.action = "RECEIVE_TRANSIT";
+        body.cellId = selectedValue;
       } else if (modalType === "cell") {
         body.action = "CHANGE_CELL";
         body.cellId = selectedValue;
@@ -281,7 +303,7 @@ export default function PackageDetailPage() {
               </>
             )}
             {pkg.status === "IN_TRANSIT" && (
-              <button onClick={() => handleOpenModal("transit")} className="btn-primary">
+              <button onClick={() => handleOpenModal("receive_transit")} className="btn-primary">
                 Принять посылку
               </button>
             )}
@@ -302,7 +324,7 @@ export default function PackageDetailPage() {
                 >
                   <div className="w-2 h-2 bg-pokemon-yellow rounded-full flex-shrink-0"></div>
                   <div className="flex-1">
-                    <p className="text-gray-200 font-medium">{log.action}</p>
+                    <p className="text-gray-200 font-medium">{ACTION_LABELS[log.action] || log.action}</p>
                     <p className="text-gray-500 text-sm">
                       {formatDate(log.timestamp)}
                     </p>
@@ -323,6 +345,7 @@ export default function PackageDetailPage() {
             <h2 className="text-xl font-bold text-pokemon-yellow mb-4">
               {modalType === "issue" && "Выдать посылку"}
               {modalType === "transit" && "Отправить в другой магазин"}
+              {modalType === "receive_transit" && "Принять посылку из транзита"}
               {modalType === "cell" && "Выбрать ячейку"}
             </h2>
 
@@ -366,7 +389,7 @@ export default function PackageDetailPage() {
                 </div>
               )}
 
-              {modalType === "cell" && (
+              {(modalType === "receive_transit" || modalType === "cell") && (
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
                     Свободная ячейка
@@ -398,7 +421,7 @@ export default function PackageDetailPage() {
               <button
                 onClick={handleAction}
                 className="btn-primary flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={actionLoading}
+                disabled={actionLoading || (modalType !== "issue" && !selectedValue)}
               >
                 {actionLoading ? "..." : "Подтвердить"}
               </button>

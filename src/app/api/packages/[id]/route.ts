@@ -7,6 +7,8 @@ export const dynamic = 'force-dynamic'
 function formatPackage(pkg: any) {
   return {
     id: pkg.id,
+    storeId: pkg.storeId,      // BUG-007: needed for cell loading
+    receiverId: pkg.receiverId, // BUG-006: needed for pickedUpById
     status: pkg.status,
     description: pkg.description,
     cellNumber: pkg.cell?.number || null,

@@ -8,6 +8,15 @@ interface DashboardData {
   recentLogs: Array<{ timestamp: string; action: string; packageId: string }>;
 }
 
+// BUG-011: Перевод кодов событий на русский
+const ACTION_LABELS: Record<string, string> = {
+  RECEIVED: "Принята на хранение",
+  TRANSIT_STARTED: "Отправлена в транзит",
+  TRANSIT_COMPLETED: "Получена из транзита",
+  ISSUED: "Выдана клиенту",
+  CELL_CHANGED: "Ячейка изменена",
+};
+
 const formatDate = (dateString: string) => {
   const date = new Date(dateString);
   const day = String(date.getDate()).padStart(2, "0");
@@ -110,7 +119,7 @@ export default function AdminDashboard() {
                   className="flex justify-between items-center p-4 bg-pokemon-darker rounded-lg hover:bg-pokemon-dark transition-colors"
                 >
                   <div>
-                    <p className="text-gray-300 font-medium">{log.action}</p>
+                    <p className="text-gray-300 font-medium">{ACTION_LABELS[log.action] || log.action}</p>
                     <p className="text-gray-500 text-sm">
                       Посылка: {log.packageId}
                     </p>

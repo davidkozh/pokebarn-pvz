@@ -19,8 +19,13 @@ interface Package {
 
 const formatPhone = (phone: string) => {
   const cleaned = phone.replace(/\D/g, "");
-  if (cleaned.length !== 11) return phone;
-  return `+${cleaned.slice(0, 1)} (${cleaned.slice(1, 4)}) ${cleaned.slice(4, 7)}-${cleaned.slice(7, 9)}-${cleaned.slice(9, 11)}`;
+  if (cleaned.length === 11) {
+    return `+${cleaned.slice(0, 1)} (${cleaned.slice(1, 4)}) ${cleaned.slice(4, 7)}-${cleaned.slice(7, 9)}-${cleaned.slice(9, 11)}`;
+  }
+  if (cleaned.length === 10) {
+    return `+7 (${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6, 8)}-${cleaned.slice(8, 10)}`;
+  }
+  return phone;
 };
 
 const formatDate = (dateString: string) => {
@@ -61,7 +66,8 @@ export default function ClientPackagesPage() {
         const response = await fetch(`/api/packages?receiverPhone=${phone}`);
         if (!response.ok) throw new Error("Failed to fetch packages");
         const data = await response.json();
-        setPackages(data.packages || []);
+        // API returns a plain array, not { packages: [...] }
+        setPackages(Array.isArray(data) ? data : (data.packages || []));
       } catch (error) {
         console.error("Error fetching packages:", error);
       } finally {
